@@ -79,8 +79,6 @@ body{
     <button class="top-btn" onclick="showCollection()">📖 圖鑑 <span class="badge" id="collBadge">0/12</span></button>
     <button class="top-btn" onclick="showAchievements()">🏆 成就 <span class="badge" id="achBadge">0</span></button>
   </div>
-  <div class="quota-display" id="quotaDisplay"></div>
-  <div class="quota-msg" id="quotaMsg" style="display:none">今日所有Quota已用完，Make Taka happy to unlock more</div>
   <div class="wheel-container">
     <canvas id="wheelCanvas" width="400" height="400"></canvas>
     <!-- Center pointer (static triangle + click target) -->
@@ -160,9 +158,6 @@ body{
   transition:transform .2s,box-shadow .2s;backdrop-filter:blur(4px);}
 .top-btn:hover{transform:scale(1.05);box-shadow:0 2px 12px rgba(232,180,184,.3);}
 .badge{background:#E8B4B8;color:#fff;border-radius:10px;padding:1px 7px;font-size:.7rem;margin-left:4px;}
-.quota-display{font-size:.85rem;color:#C45C5C;margin-bottom:6px;letter-spacing:1px;}
-.quota-msg{font-size:.9rem;color:#C45C5C;margin-bottom:8px;animation:pulse 2s ease infinite;
-  background:rgba(255,255,255,.7);padding:8px 18px;border-radius:14px;border:1.5px solid #E8B4B8;}
 .wheel-container{position:relative;display:inline-block;margin-top:4px;}
 #wheelCanvas{border-radius:50%;
   box-shadow:0 0 40px rgba(232,180,184,.35),0 0 0 8px #E8B4B8,0 0 0 12px #F4E4C1,0 0 0 16px rgba(232,180,184,.15);}
@@ -350,25 +345,6 @@ let state = loadState();
 let currentRotation=0, isSpinning=false, spinCooldown=false, easterEggTriggered=false;
 let clickCount=0, lastClickTime=0, spinTimerId=null;
 const SEG=30;
-const DAILY_QUOTA=3;
-
-function getTodayKey(){return new Date().toISOString().slice(0,10);}
-function getUsedToday(){
-  const d=JSON.parse(localStorage.getItem('wheel_daily')||'{}');
-  return d.date===getTodayKey()?d.count:0;
-}
-function addUsedToday(){
-  const key=getTodayKey();
-  const d=JSON.parse(localStorage.getItem('wheel_daily')||'{}');
-  const count=(d.date===key?d.count:0)+1;
-  localStorage.setItem('wheel_daily',JSON.stringify({date:key,count}));
-}
-function hasQuota(){return getUsedToday()<DAILY_QUOTA;}
-function updateQuotaUI(){
-  const used=getUsedToday(),left=DAILY_QUOTA-used;
-  document.getElementById('quotaDisplay').textContent=`今日剩餘次數：${'❤️'.repeat(left)}${'🤍'.repeat(used)}`;
-  document.getElementById('quotaMsg').style.display=left<=0?'block':'none';
-}
 
 function defaultState(){return {totalSpins:0,collected:{},achUnlocked:[],easterEggFound:false};}
 function loadState(){
@@ -455,7 +431,6 @@ function drawWheel(){
 // === Spin ===
 function spin(){
   if(easterEggTriggered)return;
-  if(!hasQuota()){showToast('今日次數已用完～');return;}
 
   // Always track rapid clicks, even while spinning
   const now=Date.now();
@@ -483,7 +458,6 @@ function spin(){
   ptr.classList.remove('tilt','wobble');
   document.querySelector('.center-label').style.display='none';
   isSpinning=true;
-  addUsedToday();
 
   // Random total rotation: 5-7 full spins + random offset
   const extraSpins=(5+Math.floor(Math.random()*3))*360;
@@ -559,7 +533,7 @@ function showPrizeModal(prize){
   overlay.classList.add('active');
 }
 
-function closeModal(){document.getElementById('prizeModal').classList.remove('active');updateQuotaUI();}
+function closeModal(){document.getElementById('prizeModal').classList.remove('active');}
 let saveConfirmed=false;
 function confirmSave(){
   if(!saveConfirmed){saveConfirmed=true;
@@ -703,7 +677,7 @@ function showAchToast(msg){
 function startGame(){
   document.getElementById('landing').style.display='none';
   document.getElementById('game').style.display='block';
-  drawWheel();updateBadges();updateQuotaUI();
+  drawWheel();updateBadges();
 }
 
 function resetGame(){
