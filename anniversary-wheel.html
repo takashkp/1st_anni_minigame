@@ -334,7 +334,7 @@ const achievements=[
 // === State ===
 let state = loadState();
 let currentRotation=0, isSpinning=false, spinCooldown=false, easterEggTriggered=false;
-let clickCount=0, lastClickTime=0;
+let clickCount=0, lastClickTime=0, spinTimerId=null;
 const SEG=30;
 
 function defaultState(){return {totalSpins:0,collected:{},achUnlocked:[],easterEggFound:false};}
@@ -431,18 +431,25 @@ function spin(){
   document.querySelector('.center-label').style.display='none';
   isSpinning=true;
 
-  const idx=Math.floor(Math.random()*12);
-  const extra=(5+Math.random()*2)*360;
-  const target=360-(idx*SEG+SEG/2);
-  currentRotation+=extra+target;
+  // Random total rotation: 5-7 full spins + random offset
+  const extraSpins=(5+Math.floor(Math.random()*3))*360;
+  const randomOffset=Math.random()*360;
+  const totalDeg=extraSpins+randomOffset;
+  currentRotation+=totalDeg;
+
   const canvas=document.getElementById('wheelCanvas');
   const dur=5+Math.random()*2;
   canvas.style.transition=`transform ${dur}s cubic-bezier(.25,.1,.25,1)`;
   canvas.style.transform=`rotate(${currentRotation}deg)`;
   if(navigator.vibrate)navigator.vibrate(50);
 
-  setTimeout(()=>{
+  spinTimerId=setTimeout(()=>{
+    spinTimerId=null;
+    if(easterEggTriggered)return;
     isSpinning=false;
+    const r=((currentRotation%360)+360)%360;
+    const topAngle=(360-r)%360;
+    const idx=Math.floor(topAngle/SEG)%12;
     recordPrize(prizes[idx]);
     showPrizeModal(prizes[idx]);
   },dur*1000+200);
@@ -550,6 +557,8 @@ function closePanel(id){document.getElementById(id).classList.remove('active');}
 // === Easter Egg ===
 function triggerEasterEgg(){
   easterEggTriggered=true;
+  isSpinning=false;
+  if(spinTimerId){clearTimeout(spinTimerId);spinTimerId=null;}
   showToast('啊啊啊——');
   state.easterEggFound=true;
   // unlock all prizes
