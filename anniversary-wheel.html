@@ -31,6 +31,15 @@ body{
   animation:twinkle ease-in-out infinite;opacity:0;}
 @keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.6;transform:scale(1.2)}}
 
+/* flying hearts - diagonal drift */
+.bg-fly{position:absolute;opacity:0;animation:flyHeart linear infinite;pointer-events:none;}
+@keyframes flyHeart{
+  0%{transform:translate(0,0) rotate(0deg) scale(.6);opacity:0}
+  10%{opacity:var(--fop,.12)}
+  80%{opacity:var(--fop,.12)}
+  100%{transform:translate(var(--dx,200px),var(--dy,-300px)) rotate(var(--frot,180deg)) scale(.3);opacity:0}
+}
+
 /* === Landing === */
 #landing{text-align:center;animation:fadeIn 1.2s ease;padding:40px 20px;position:relative;}
 .landing-deco{font-size:3.2rem;margin-bottom:8px;animation:pulse 2s ease infinite;}
@@ -59,7 +68,7 @@ body{
   <div class="landing-deco">💝</div>
   <h1>一週年命運轉盤</h1>
   <div class="landing-date">2026 · 04 · 03</div>
-  <p class="subtitle">轉動看看，我今天屬於你 ❤️</p>
+  <p class="subtitle">From Taka to Tiffany ♡</p>
   <div class="landing-hearts">💖 💕 ✨ 💖 💕</div>
   <button onclick="startGame()">開始轉動</button>
 </div>
@@ -370,6 +379,25 @@ function initBg(){
     s.style.animationDelay=(Math.random()*4)+'s';
     s.style.width=s.style.height=(2+Math.random()*3)+'px';
     c.appendChild(s);
+  }
+  // flying hearts - diagonal drift across screen
+  const flyHearts=['💕','💖','💝','💗','♡','❤'];
+  for(let i=0;i<12;i++){
+    const h=document.createElement('div');
+    h.className='bg-fly';
+    h.textContent=flyHearts[Math.floor(Math.random()*flyHearts.length)];
+    h.style.fontSize=(1+Math.random()*1.5)+'rem';
+    h.style.left=Math.random()*80+'%';
+    h.style.top=(30+Math.random()*60)+'%';
+    h.style.animationDuration=(8+Math.random()*12)+'s';
+    h.style.animationDelay=(Math.random()*12)+'s';
+    const dx=((Math.random()-.5)*400).toFixed(0);
+    const dy=(-(150+Math.random()*350)).toFixed(0);
+    h.style.setProperty('--dx',dx+'px');
+    h.style.setProperty('--dy',dy+'px');
+    h.style.setProperty('--frot',(120+Math.random()*240).toFixed(0)+'deg');
+    h.style.setProperty('--fop',(.25+Math.random()*.2).toFixed(2));
+    c.appendChild(h);
   }
 }
 initBg();
